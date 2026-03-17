@@ -1,55 +1,42 @@
-# hsqDigitalAvatar / 洪思齐数字分身
+# 🎯 hsqDigitalAvatar / 洪思齐数字分身
 
-个人数字网站，记录生活、读书、电影、音乐、遇见，自律打卡。基于 VitePress 构建。
+> 个人数字分身，记录生活、读书、电影、音乐、遇见，自律打卡。  
+> 所有数据本地存储，AES 加密备份，隐私完全保护。  
+> 基于 VitePress 构建，部署在 GitHub Pages。
 
-## 项目结构
+## 📋 功能模块
 
-```
-.
-├── .github/workflows/deploy.yml  # GitHub Actions 自动部署
-├── docs/
-│   ├── .vitepress/
-│   │   └── config.js          # VitePress 配置（导航已设置好）
-│   ├── index.md               # 首页（VitePress 默认布局）
-│   ├── resume.md              # 简历
-│   ├── daily.md               # 每日动态
-│   ├── personality.md         # 性格分析
-│   ├── hobbies.md            # 喜好
-│   ├── experience.md          # 经历
-│   ├── knowledge.md           # 知识库
-│   └── public/
-│       ├── self-management.html  # 自律打卡（HTML + Tailwind CSS）
-│       ├── books.html            # 书单（HTML + Tailwind CSS）
-│       ├── music.html            # 音乐（HTML + Tailwind CSS）
-│       ├── movies.html           # 电影（HTML + Tailwind CSS）
-│       ├── people.html           # 遇见（HTML + Tailwind CSS）
-│       └── data-manager.html     # 🔐 统一数据管理 - AES 加密备份恢复
-├── package.json
-└── README.md
-```
+| 模块 | 说明 | 链接 |
+|------|------|------|
+| 📄 **简历** | 个人简历 | `/resume` |
+| 📚 **书单** | 交互式记录读过的书 | `/public/books.html` |
+| 🎵 **音乐** | 交互式记录喜欢的音乐 | `/public/music.html` |
+| 🎬 **电影** | 交互式记录看过的电影 | `/public/movies.html` |
+| 👥 **遇见** | 分类记录生命中遇见的人 | `/public/people.html` |
+| 🎯 **自律打卡** | 每日/每周任务打卡 + 积分银行 | `/public/self-management.html` |
+| 🔐 **数据管理** | 统一 AES 加密备份/恢复所有数据 | `/public/data-manager.html` |
+| 🧠 **性格分析** | 性格分析 | `/personality` |
+| ❤️ **喜好** | 个人喜好 | `/hobbies` |
+| 📜 **经历** | 成长经历 | `/experience` |
+| 📝 **知识库** | 知识笔记 | `/knowledge` |
+| 📅 **每日动态** | 每日记录 | `/daily` |
 
-## 功能模块
+## 🔒 安全特性
 
-| 模块 | 说明 |
-|------|------|
-| 📄 **简历** | 个人简历 |
-| 📚 **书单** | 记录读过的书、在读、待读 |
-| 🎵 **音乐** | 记录喜欢的歌、专辑、歌单 |
-| 🎬 **电影** | 记录看过的电影、五星推荐、想看 |
-| 👥 **遇见** | 记录生命中遇见的人，分类保存故事 |
-| 🎯 **自律打卡** | 每日/每周任务打卡 + 积分银行 |
-| 🔐 **数据管理** | 统一 AES 加密备份/恢复所有数据 |
+✅ **所有数据存储在浏览器本地 `localStorage`**，**不会上传到任何服务器**  
+✅ 支持导出**全量加密备份**（AES 加密），备份文件可以存到任何云盘  
+✅ 没有密码**无法解密**，即使备份泄露也安全  
+✅ 支持从备份**一键恢复**所有数据
 
-## 🔒 数据安全
+## 🚀 快速开始
 
-- 所有数据存储在浏览器本地 `localStorage`，不会上传到任何服务器
-- 支持导出**全量加密备份**（AES 加密），备份文件可以存到任何云盘
-- 没有密码无法解密，即使备份泄露也安全
-- 支持从备份一键恢复所有数据
-
-## 开发
+### 本地开发
 
 ```bash
+# 克隆项目
+git clone https://github.com/sinclearadam943-sudo/hsqDigitalAvatar.git
+cd hsqDigitalAvatar
+
 # 安装依赖
 npm install
 
@@ -60,23 +47,26 @@ npm run docs:dev
 npm run docs:build
 ```
 
-## 部署到 GitHub Pages
+### 部署
 
-GitHub Actions 已经配置好，推送代码自动部署。
+项目已经配置 GitHub Actions 自动部署，推送代码自动构建。
 
-1. 创建 GitHub 仓库 `hsqDigitalAvatar`
-2. 推送代码到 main 分支
-3. GitHub Actions 自动构建部署
-4. 开启 GitHub Pages，源选择 `gh-pages` 分支即可
+部署完成后：
+1. 打开 GitHub → **Settings** → **Pages**
+2. **Source** → 选择 `Deploy from a branch`
+3. **Branch** → 选择 `main`，folder 选择 `/(root)` → `/docs`
+4. 点击 **Save**，几分钟后即可访问：  
+   `https://sinclearadam943-sudo.github.io/hsqDigitalAvatar/`
 
-## 特点
+## 🎨 技术栈
 
-- 🚀 基于 VitePress，快速响应
-- 📱 响应式设计，移动端友好
-- 🎨 Tailwind CSS 美化交互页面
-- 🔒 AES 加密备份，隐私安全
-- 📝 易于维护，Markdown + HTML 混合
+- 🚀 **VitePress** - 静态网站生成器
+- 💨 **Tailwind CSS** - 交互式页面美化
+- 🔐 **CryptoJS** - AES 加密备份
+- 📱 **响应式设计** - 手机电脑都好看
+- 🤖 **GitHub Actions** - 自动部署
 
-## 许可证
+## 📄 许可证
 
-MIT
+MIT [![Deploy to GitHub Pages](https://github.com/sinclearadam943-sudo/hsqDigitalAvatar/actions/workflows/deploy.yml/badge.svg)](https://github.com/sinclearadam943-sudo/hsqDigitalAvatar/actions/workflows/deploy.yml)
+
