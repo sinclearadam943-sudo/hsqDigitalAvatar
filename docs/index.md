@@ -31,4 +31,7 @@ features:
   - title: 📚 知识库
     details: 我整理的知识和学习笔记
     link: /knowledge
+  - title: 🎯 自律打卡
+    details: 自我管理打卡积分银行，坚持养成好习惯
+    link: /self-management.html
 ---

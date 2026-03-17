@@ -12,6 +12,7 @@ export default {
       { text: '喜好', link: '/hobbies' },
       { text: '经历', link: '/experience' },
       { text: '知识库', link: '/knowledge' },
+      { text: '自律打卡', link: '/self-management.html' },
     ],
     search: {
       provider: 'local'
