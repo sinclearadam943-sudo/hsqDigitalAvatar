@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>遇见的人 - 洪思齐</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2E6CF3',
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        danger: '#F53F3F',
+                        dark: '#1D2129',
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .person-card {
+            transition: all 0.3s ease;
+        }
+        .person-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+        .category-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .badge-teacher {
+            background: #E8FBF2;
+            color: #00B42A;
+        }
+        .badge-friend {
+            background: #E5F2FF;
+            color: #2E6CF3;
+        }
+        .badge-special {
+            background: #FFF7E8;
+            color: #FF7D00;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-8 text-white">
+            <h1 class="text-4xl md:text-5xl font-bold mb-3">👥 遇见的人</h1>
+            <p class="text-lg opacity-90">记录那些在我生命中留下印记的人</p>
+        </div>
+
+        <!-- 老师前辈 -->
+        <div class="card p-6 md:p-8 mb-8">
+            <h2 class="text-2xl font-bold text-dark mb-6 flex items-center">
+                <span class="mr-3">👨‍🏫</span> 老师前辈
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="people-teacher">
+                <div class="text-gray-400 text-center py-8">
+                    还没有记录，请添加
+                </div>
+            </div>
+            <div class="mt-6 pt-4 border-t">
+                <button onclick="addPerson('teacher')" class="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary/90 transition-colors">
+                    ➕ 添加老师前辈
+                </button>
+            </div>
+        </div>
+
+        <!-- 同窗好友 -->
+        <div class="card p-6 md:p-8 mb-8">
+            <h2 class="text-2xl font-bold text-dark mb-6 flex items-center">
+                <span class="mr-3">👥</span> 同窗好友
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="people-friend">
+                <div class="text-gray-400 text-center py-8">
+                    还没有记录，请添加
+                </div>
+            </div>
+            <div class="mt-6 pt-4 border-t">
+                <button onclick="addPerson('friend')" class="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary/90 transition-colors">
+                    ➕ 添加同窗好友
+                </button>
+            </div>
+        </div>
+
+        <!-- 特别的人 -->
+        <div class="card p-6 md:p-8">
+            <h2 class="text-2xl font-bold text-dark mb-6 flex items-center">
+                <span class="mr-3">💫</span> 特别的人
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="people-special">
+                <div class="text-gray-400 text-center py-8">
+                    还没有记录，请添加
+                </div>
+            </div>
+            <div class="mt-6 pt-4 border-t">
+                <button onclick="addPerson('special')" class="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary/90 transition-colors">
+                    ➕ 添加特别的人
+                </button>
+                <button onclick="clearAllData()" class="mt-3 w-full bg-danger text-white py-3 px-4 rounded-lg hover:bg-danger/90 transition-colors">
+                    🗑️ 清空所有数据
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-4 text-center">
+            <p class="text-white/80 text-sm">
+                💡 数据备份请前往 <a href="/public/data-manager.html" class="underline hover:text-white">🔐 数据管理页面</a> 统一管理
+            </p>
+        </div>
+
+        <div class="mt-8 text-center text-white opacity-80">
+            <p class="italic">人生中遇到的每个人，都会在你身上留下或多或少的印记。<br>感谢每一次遇见。</p>
+        </div>
+    </div>
+
+    <script>
+        const defaultData = {
+            teacher: [],
+            friend: [],
+            special: []
+        };
+
+        let data = JSON.parse(localStorage.getItem('peopleData')) || defaultData;
+
+        function saveData() {
+            localStorage.setItem('peopleData', JSON.stringify(data));
+        }
+
+        function getCategoryName(category) {
+            const names = {
+                teacher: '老师前辈',
+                friend: '同窗好友',
+                special: '特别的人'
+            };
+            return names[category];
+        }
+
+        function getBadgeClass(category) {
+            const classes = {
+                teacher: 'badge-teacher',
+                friend: 'badge-friend',
+                special: 'badge-special'
+            };
+            return `category-badge ${classes[category]}`;
+        }
+
+        function render() {
+            renderSection('teacher', data.teacher);
+            renderSection('friend', data.friend);
+            renderSection('special', data.special);
+        }
+
+        function renderSection(category, people) {
+            const container = document.getElementById(`people-${category}`);
+            if (people.length === 0) {
+                container.innerHTML = '<div class="text-gray-400 text-center py-8">还没有记录，请添加</div>';
+                return;
+            }
+
+            container.innerHTML = people.map((person, index) => `
+                <div class="person-card bg-gray-50 rounded-xl p-5 border border-gray-200 relative">
+                    <span class="${getBadgeClass(category)}">${getCategoryName(category)}</span>
+                    <h3 class="text-xl font-bold text-dark mb-2 mt-2">${person.name}</h3>
+                    <p class="text-gray-600 mb-2">认识时间：${person.time || '未知'}</p>
+                    ${person.story ? `<div class="mt-3 text-sm text-gray-600 border-t pt-3">${person.story}</div>` : ''}
+                    <div class="mt-4 flex gap-2">
+                        <button onclick="deletePerson('${category}', ${index})" class="flex-1 bg-danger/10 text-danger py-2 px-3 rounded-lg hover:bg-danger/20 transition-colors text-sm">
+                            删除
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addPerson(category) {
+            const name = prompt('请输入姓名：');
+            if (!name) return;
+            const time = prompt('认识时间（例如：2020年9月）：');
+            if (time === null) return;
+            const story = prompt('说点什么吧（你们的故事，教会你的事...）：');
+
+            data[category].push({ name, time, story });
+            saveData();
+            render();
+        }
+
+        function deletePerson(category, index) {
+            if (!confirm('确定要删除这条记录吗？')) return;
+            data[category].splice(index, 1);
+            saveData();
+            render();
+        }
+
+        function clearAllData() {
+            if (!confirm('⚠️ 确定要清空本页所有记录吗？无法恢复！')) return;
+            if (confirm('再次确认：真的要清空吗？这是很私人的记录，清空后找不回来了。')) {
+                localStorage.removeItem('peopleData');
+                data = JSON.parse(JSON.stringify(defaultData));
+                saveData();
+                render();
+            }
+        }
+
+        render();
+    </script>
+</body>
+</html>

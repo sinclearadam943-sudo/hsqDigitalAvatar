@@ -6,7 +6,8 @@ pnpm-lock.yaml
 
 # VitePress build output
 docs/.vitepress/cache
-docs/.vitepress/dist
+# Keep dist in git for GitHub Pages manual deployment
+# docs/.vitepress/dist
 
 # OS files
 .DS_Store

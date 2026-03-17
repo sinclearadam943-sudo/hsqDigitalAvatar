@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据管理 - 洪思齐个人网站</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2E6CF3',
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        danger: '#F53F3F',
+                        dark: '#1D2129',
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-8 text-white">
+            <h1 class="text-4xl md:text-5xl font-bold mb-3">🔐 数据管理</h1>
+            <p class="text-lg opacity-90">统一管理你的个人数据，加密备份和恢复</p>
+        </div>
+
+        <!-- 导出全部数据 -->
+        <div class="card p-6 md:p-8 mb-6">
+            <h2 class="text-2xl font-bold text-dark mb-4 flex items-center">
+                <span class="mr-3">💾</span> 导出全部数据
+            </h2>
+            <p class="text-gray-600 mb-6">
+                将你所有的个人数据（自律打卡、书单、音乐、电影、遇见）打包成一个加密备份文件下载。<br>
+                即使浏览器缓存清空，或者换设备，也能通过备份恢复。
+            </p>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <p class="text-sm text-blue-700">
+                    <strong>🔒 安全提示：</strong> 导出的数据会用 <strong>AES 加密</strong>，你设置密码，没有密码任何人都无法查看你的数据。
+                    请记住密码，忘记密码无法恢复。
+                </p>
+            </div>
+            <button onclick="exportAllData()" class="w-full bg-success text-white py-4 px-4 rounded-lg hover:bg-success/90 transition-colors text-lg font-medium">
+                📥 导出全部加密备份
+            </button>
+        </div>
+
+        <!-- 导入全部数据 -->
+        <div class="card p-6 md:p-8 mb-6">
+            <h2 class="text-2xl font-bold text-dark mb-4 flex items-center">
+                <span class="mr-3">📥</span> 从备份导入
+            </h2>
+            <p class="text-gray-600 mb-6">
+                从之前导出的加密备份文件恢复所有数据。<br>
+                <strong>⚠️ 警告：</strong> 这会覆盖你当前的所有数据！
+            </p>
+            <label class="w-full block bg-primary text-white py-4 px-4 rounded-lg hover:bg-primary/90 transition-colors text-lg font-medium text-center cursor-pointer">
+                📁 选择备份文件并导入
+                <input type="file" id="import-file" accept=".encrypted" onchange="importAllData(event)" hidden>
+            </label>
+        </div>
+
+        <!-- 当前数据统计 -->
+        <div class="card p-6 md:p-8 mb-6">
+            <h2 class="text-2xl font-bold text-dark mb-4 flex items-center">
+                <span class="mr-3">📊</span> 当前数据统计
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4" id="stats">
+                <!-- 统计信息会在这里显示 -->
+            </div>
+        </div>
+
+        <!-- 危险操作 -->
+        <div class="card p-6 md:p-8">
+            <h2 class="text-2xl font-bold text-dark mb-4 flex items-center">
+                <span class="mr-3">⚠️</span> 危险操作
+            </h2>
+            <p class="text-gray-600 mb-6">
+                以下操作会清空数据，请谨慎操作！
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button onclick="clearAllData()" class="bg-danger text-white py-3 px-4 rounded-lg hover:bg-danger/90 transition-colors">
+                    🗑️ 清空所有数据
+                </button>
+                <button onclick="resetAllStats()" class="bg-warning text-white py-3 px-4 rounded-lg hover:bg-warning/90 transition-colors">
+                    🔄 重置统计数据
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-8 text-center text-white opacity-80">
+            <p class="text-sm">
+                你的数据全部存在本地浏览器，不会上传到任何服务器。<br>
+                请记得定期备份，防止数据丢失。
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const storageKeys = {
+            selfManagement: 'selfManagementData',
+            books: 'bookListData',
+            music: 'musicData',
+            movies: 'movieData',
+            people: 'peopleData'
+        };
+
+        function getAllData() {
+            const allData = {};
+            for (const [name, key] of Object.entries(storageKeys)) {
+                const data = localStorage.getItem(key);
+                if (data) {
+                    allData[name] = JSON.parse(data);
+                }
+            }
+            return allData;
+        }
+
+        function countStats() {
+            const allData = getAllData();
+            const stats = {};
+            
+            // 自律打卡统计
+            if (allData.selfManagement) {
+                stats.selfManagement = {
+                    dailyTasks: allData.selfManagement.daily?.length || 0,
+                    weeklyTasks: allData.selfManagement.weekly?.length || 0,
+                    totalScore: allData.selfManagement.totalScore || 0,
+                    history: allData.selfManagement.history?.length || 0
+                };
+            }
+            
+            // 书单统计
+            if (allData.books) {
+                stats.books = {
+                    read: allData.books.read?.length || 0,
+                    reading: allData.books.reading?.length || 0,
+                    toread: allData.books.toread?.length || 0,
+                    total: (allData.books.read?.length || 0) + (allData.books.reading?.length || 0) + (allData.books.toread?.length || 0)
+                };
+            }
+            
+            // 音乐统计
+            if (allData.music) {
+                stats.music = {
+                    songs: allData.music.songs?.length || 0,
+                    albums: allData.music.albums?.length || 0,
+                    playlists: allData.music.playlists?.length || 0,
+                    total: (allData.music.songs?.length || 0) + (allData.music.albums?.length || 0) + (allData.music.playlists?.length || 0)
+                };
+            }
+            
+            // 电影统计
+            if (allData.movies) {
+                stats.movies = {
+                    watched: allData.movies.watched?.length || 0,
+                    favorite: allData.movies.favorite?.length || 0,
+                    want: allData.movies.want?.length || 0,
+                    total: (allData.movies.watched?.length || 0) + (allData.movies.favorite?.length || 0) + (allData.movies.want?.length || 0)
+                };
+            }
+            
+            // 遇见统计
+            if (allData.people) {
+                stats.people = {
+                    teacher: allData.people.teacher?.length || 0,
+                    friend: allData.people.friend?.length || 0,
+                    special: allData.people.special?.length || 0,
+                    total: (allData.people.teacher?.length || 0) + (allData.people.friend?.length || 0) + (allData.people.special?.length || 0)
+                };
+            }
+            
+            return stats;
+        }
+
+        function renderStats() {
+            const stats = countStats();
+            const container = document.getElementById('stats');
+            
+            const statItems = [
+                { key: 'selfManagement', title: '🎯 自律打卡', value: stats.selfManagement ? `${stats.selfManagement.totalScore} 积分` : '0 积分' },
+                { key: 'books', title: '📚 书籍', value: stats.books ? `${stats.books.total} 本` : '0 本' },
+                { key: 'music', title: '🎵 音乐', value: stats.music ? `${stats.music.total} 条` : '0 条' },
+                { key: 'movies', title: '🎬 电影', value: stats.movies ? `${stats.movies.total} 部` : '0 部' },
+                { key: 'people', title: '👥 遇见', value: stats.people ? `${stats.people.total} 人` : '0 人' }
+            ];
+            
+            container.innerHTML = statItems.map(item => `
+                <div class="bg-gray-50 rounded-xl p-4 text-center border border-gray-200">
+                    <div class="text-lg font-medium text-dark">${item.title}</div>
+                    <div class="text-2xl font-bold text-primary mt-2">${item.value}</div>
+                </div>
+            `).join('');
+        }
+
+        function exportAllData() {
+            const password = prompt('请设置备份密码（请务必记住，导入时需要）：');
+            if (!password) return;
+            if (password.length < 4) {
+                alert('⚠️ 密码太短，请至少4位字符');
+                return;
+            }
+            
+            const allData = {
+                version: 1,
+                exportTime: new Date().toISOString(),
+                data: getAllData()
+            };
+            
+            const jsonStr = JSON.stringify(allData);
+            const encrypted = CryptoJS.AES.encrypt(jsonStr, password).toString();
+            
+            // Download
+            const blob = new Blob([encrypted], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const dateStr = new Date().toISOString().slice(0, 10);
+            a.download = `hongsiqi-full-backup-${dateStr}.encrypted`;
+            a.href = url;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            alert('✅ 全部数据已导出加密备份！\n\n请保存好这个 .encrypted 文件，记住密码。\n忘记密码将无法恢复数据。');
+        }
+
+        function importAllData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!confirm('⚠️ 确定要导入吗？这会覆盖你当前所有数据！无法撤销。')) {
+                event.target.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const encrypted = e.target.result;
+                const password = prompt('请输入备份密码：');
+                if (!password) return;
+                
+                try {
+                    const decrypted = CryptoJS.AES.decrypt(encrypted, password).toString(CryptoJS.enc.Utf8);
+                    const backup = JSON.parse(decrypted);
+                    
+                    if (!backup.version || !backup.data) {
+                        alert('❌ 备份文件格式不正确');
+                        return;
+                    }
+                    
+                    // 导入数据
+                    for (const [name, data] of Object.entries(backup.data)) {
+                        localStorage.setItem(storageKeys[name], JSON.stringify(data));
+                    }
+                    
+                    renderStats();
+                    alert('✅ 导入成功！所有数据已恢复。\n\n建议刷新页面查看最新数据。');
+                } catch (err) {
+                    console.error(err);
+                    alert('❌ 导入失败：密码错误或文件损坏');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function clearAllData() {
+            if (!confirm('⚠️ ⚠️ 确定要清空所有数据吗？这包括：\n- 自律打卡\n- 书单\n- 音乐\n- 电影\n- 遇见\n\n此操作无法撤销！')) return;
+            if (!confirm('再次确认：真的要清空所有数据吗？所有记录都会丢失。')) return;
+            
+            for (const [, key] of Object.entries(storageKeys)) {
+                localStorage.removeItem(key);
+            }
+            
+            renderStats();
+            alert('✅ 所有数据已清空');
+        }
+
+        function resetAllStats() {
+            if (!confirm('确定要重置统计数据吗？数据本身不会清空，只是统计重置。')) return;
+            renderStats();
+            alert('✅ 统计已刷新');
+        }
+
+        // 初始渲染
+        renderStats();
+    </script>
+</body>
+</html>
