@@ -7,11 +7,10 @@ export default {
     nav: [
       { text: '首页', link: '/' },
       { text: '简历', link: '/resume' },
-      { text: '每日动态', link: '/daily' },
-      { text: '性格分析', link: '/personality' },
-      { text: '喜好', link: '/hobbies' },
-      { text: '经历', link: '/experience' },
-      { text: '知识库', link: '/knowledge' },
+      { text: '书单', link: '/books' },
+      { text: '音乐', link: '/music' },
+      { text: '电影', link: '/movies' },
+      { text: '遇见', link: '/people' },
       { text: '自律打卡', link: '/self-management.html' },
     ],
     search: {
