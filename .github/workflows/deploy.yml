@@ -1,4 +1,10 @@
-name: Deploy to GitHub Pages
+# No need for action deployment, just enable GitHub Pages from main branch with /docs/.vitepress/dist
+# This project is fully static, you can enable it manually:
+# 1. Go to Settings → Pages
+# 2. Source → Deploy from a branch
+# 3. Select main branch, folder /docs/.vitepress/dist
+# 4. Save
+name: Build and check
 
 on:
   push:
@@ -6,12 +12,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
       
       - uses: pnpm/action-setup@v2
         with:
@@ -28,9 +32,3 @@ jobs:
       
       - name: Build
         run: pnpm docs:build
-      
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/.vitepress/dist
