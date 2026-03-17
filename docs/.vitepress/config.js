@@ -1,6 +1,8 @@
 export default {
   title: '洪思齐',
   description: '洪思齐个人网站',
+  // 如果部署到 https://<username>.github.io/<repo>/ 需要设置 base: '/<repo>/'
+  // base: '/hongsiqi-website/',
   themeConfig: {
     nav: [
       { text: '首页', link: '/' },
@@ -11,6 +13,9 @@ export default {
       { text: '经历', link: '/experience' },
       { text: '知识库', link: '/knowledge' },
     ],
+    search: {
+      provider: 'local'
+    },
     sidebar: false,
     outline: {
       level: [2, 3],
