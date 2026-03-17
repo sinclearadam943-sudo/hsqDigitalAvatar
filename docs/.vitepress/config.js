@@ -12,6 +12,7 @@ export default {
       { text: '电影', link: '/public/movies.html' },
       { text: '遇见', link: '/public/people.html' },
       { text: '自律打卡', link: '/public/self-management.html' },
+      { text: '🔐 数据管理', link: '/public/data-manager.html' },
     ],
     search: {
       provider: 'local'

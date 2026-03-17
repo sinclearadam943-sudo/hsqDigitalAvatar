@@ -104,23 +104,9 @@
                 </button>
             </div>
         </div>
-
-        <!-- 数据备份 -->
-        <div class="card p-6 md:p-8 mt-8">
-            <h2 class="text-2xl font-bold text-dark mb-6 flex items-center">
-                <span class="mr-3">🔐</span> 数据备份
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <button onclick="exportData()" class="bg-success text-white py-3 px-4 rounded-lg hover:bg-success/90 transition-colors">
-                    💾 导出加密备份
-                </button>
-                <label class="bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary/90 transition-colors text-center cursor-pointer">
-                    📥 从备份导入
-                    <input type="file" id="import-file" accept=".json,.encrypted" onchange="importData(event)" hidden>
-                </label>
-            </div>
-            <p class="mt-4 text-sm text-gray-500">
-                💡 提示：导出的备份会用密码AES加密，保存在你的云盘，即使泄露他人也无法查看。导入时需要输入相同密码才能恢复。
+        <div class="mt-4 text-center">
+            <p class="text-white/80 text-sm">
+                💡 数据备份请前往 <a href="/public/data-manager.html" class="underline hover:text-white">🔐 数据管理页面</a> 统一管理
             </p>
         </div>
     </div>
@@ -276,71 +262,13 @@
         }
 
         function clearAllData() {
-            if (!confirm('⚠️ 确定要清空所有音乐数据吗？无法恢复！')) return;
-            if (confirm('再次确认：真的要清空吗？')) {
+            if (!confirm('⚠️ 确定要清空本页数据吗？')) return;
+            if (confirm('再次确认：真的要清空所有音乐数据吗？')) {
                 localStorage.removeItem('musicData');
                 data = JSON.parse(JSON.stringify(defaultData));
                 saveData();
                 render();
             }
-        }
-
-        function exportData() {
-            const password = prompt('请设置备份密码（请记住，导入时需要）：');
-            if (!password) return;
-            
-            const allData = {
-                music: data,
-                exportTime: new Date().toISOString(),
-                version: 1
-            };
-            
-            const jsonStr = JSON.stringify(allData);
-            const encrypted = CryptoJS.AES.encrypt(jsonStr, password).toString();
-            
-            // Download
-            const blob = new Blob([encrypted], {type: 'text/plain'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.download = `music-backup-${new Date().toISOString().slice(0, 10)}.encrypted`;
-            a.href = url;
-            a.click();
-            URL.revokeObjectURL(url);
-            
-            alert('✅ 备份导出成功！请保存好这个加密文件，记住密码。');
-        }
-
-        function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const encrypted = e.target.result;
-                const password = prompt('请输入备份密码：');
-                if (!password) return;
-                
-                try {
-                    const decrypted = CryptoJS.AES.decrypt(encrypted, password).toString(CryptoJS.enc.Utf8);
-                    const allData = JSON.parse(decrypted);
-                    
-                    if (!allData.music) {
-                        alert('❌ 备份文件格式不正确');
-                        return;
-                    }
-                    
-                    if (!confirm(`确定要导入吗？这会覆盖当前所有数据！`)) return;
-                    
-                    data = allData.music;
-                    saveData();
-                    render();
-                    alert('✅ 导入成功！数据已恢复。');
-                } catch (err) {
-                    alert('❌ 导入失败：密码错误或文件损坏');
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = '';
         }
 
         render();
