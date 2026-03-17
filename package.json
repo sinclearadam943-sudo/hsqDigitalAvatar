@@ -1,7 +1,7 @@
 {
-  "name": "hongsiqi-website",
+  "name": "hsq-digital-avatar",
   "version": "1.0.0",
-  "description": "洪思齐个人网站 - Powered by VitePress",
+  "description": "洪思齐数字分身 - 个人数字网站，记录生活、读书、电影、音乐、遇见，自律打卡",
   "scripts": {
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
