@@ -1,8 +1,8 @@
 export default {
   title: '洪思齐 | 数字分身',
   description: '洪思齐数字分身 - 个人数字网站，记录生活、读书、电影、音乐、遇见，自律打卡',
-  // 如果部署到 https://<username>.github.io/<repo>/ 需要设置 base: '/<repo>/'
-  // base: '/hongsiqi-website/',
+  // 如果部署 to https://sinclearadam943-sudo.github.io/hsqDigitalAvatar/
+  base: '/hsqDigitalAvatar/',
   themeConfig: {
     nav: [
       { text: '首页', link: '/' },
