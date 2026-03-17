@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>读过的书 - 洪思齐</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2E6CF3',
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        danger: '#F53F3F',
+                        dark: '#1D2129',
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .book-card {
+            transition: all 0.3s ease;
+        }
+        .book-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+        .stars {
+            color: #FFB800;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-8 text-white">
+            <h1 class="text-4xl md:text-5xl font-bold mb-3">📚 读过的书</h1>
+            <p class="text-lg opacity-90">记录我读过的书，分享读书笔记</p>
+        </div>
+
+        <!-- 已读完 -->
+        <div class="card p-6 md:p-8 mb-8">
+            <h2 class="text-2xl font-bold text-dark mb-6 flex items-center">
+                <span class="mr-3">✅</span> 已读完
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="books-read">
+                <div class="text-gray-400 text-center py-8">
+                    还没有记录，请添加书籍
+                </div>
+            </div>
+            <div class="mt-6 pt-4 border-t">
+                <button onclick="addBook('read')" class="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary/90 transition-colors">
+                    ➕ 添加已读书籍
+                </button>
+            </div>
+        </div>
+
+        <!-- 在读中 -->
+        <div class="card p-6 md:p-8 mb-8">
+            <h2 class="text-2xl font-bold text-dark mb-6 flex items-center">
+                <span class="mr-3">📖</span> 在读中
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="books-reading">
+                <div class="text-gray-400 text-center py-8">
+                    还没有记录，请添加书籍
+                </div>
+            </div>
+            <div class="mt-6 pt-4 border-t">
+                <button onclick="addBook('reading')" class="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary/90 transition-colors">
+                    ➕ 添加正在读的书
+                </button>
+            </div>
+        </div>
+
+        <!-- 待读书单 -->
+        <div class="card p-6 md:p-8">
+            <h2 class="text-2xl font-bold text-dark mb-6 flex items-center">
+                <span class="mr-3">📋</span> 待读书单
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="books-toread">
+                <div class="text-gray-400 text-center py-8">
+                    还没有记录，请添加书籍
+                </div>
+            </div>
+            <div class="mt-6 pt-4 border-t">
+                <button onclick="addBook('toread')" class="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary/90 transition-colors">
+                    ➕ 添加待读书籍
+                </button>
+                <button onclick="clearAllBooks()" class="mt-3 w-full bg-danger text-white py-3 px-4 rounded-lg hover:bg-danger/90 transition-colors">
+                    🗑️ 清空所有数据
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const defaultData = {
+            read: [],
+            reading: [],
+            toread: []
+        };
+
+        let data = JSON.parse(localStorage.getItem('bookListData')) || defaultData;
+
+        function saveData() {
+            localStorage.setItem('bookListData', JSON.stringify(data));
+        }
+
+        function renderStars(rating) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= rating) {
+                    stars += '★';
+                } else {
+                    stars += '☆';
+                }
+            }
+            return stars;
+        }
+
+        function render() {
+            renderSection('read', data.read);
+            renderSection('reading', data.reading);
+            renderSection('toread', data.toread);
+        }
+
+        function renderSection(section, books) {
+            const container = document.getElementById(`books-${section}`);
+            if (books.length === 0) {
+                container.innerHTML = '<div class="text-gray-400 text-center py-8">还没有记录，请添加书籍</div>';
+                return;
+            }
+
+            container.innerHTML = books.map((book, index) => `
+                <div class="book-card bg-gray-50 rounded-xl p-5 border border-gray-200">
+                    <h3 class="text-xl font-bold text-dark mb-2">${book.name}</h3>
+                    <p class="text-gray-600 mb-2">作者：${book.author}</p>
+                    ${book.rating ? `<p class="mb-2"><span class="font-medium">评分：</span><span class="stars">${renderStars(book.rating)}</span></p>` : ''}
+                    ${book.time ? `<p class="text-sm text-gray-500">时间：${book.time}</p>` : ''}
+                    ${book.progress ? `<p class="text-sm text-gray-500">进度：${book.progress}</p>` : ''}
+                    ${book.note ? `<p class="mt-3 text-sm text-gray-600 border-t pt-3">${book.note}</p>` : ''}
+                    <div class="mt-4 flex gap-2">
+                        <button onclick="deleteBook('${section}', ${index})" class="flex-1 bg-danger/10 text-danger py-2 px-3 rounded-lg hover:bg-danger/20 transition-colors text-sm">
+                            删除
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addBook(section) {
+            const name = prompt('请输入书名：');
+            if (!name) return;
+            const author = prompt('请输入作者：');
+            if (author === null) return;
+
+            if (section === 'read') {
+                const rating = parseInt(prompt('请输入评分（1-5星）：') || '5');
+                const time = prompt('请输入读完时间（例如：2026年3月）：');
+                const note = prompt('请输入读书笔记（可选）：');
+                data[section].push({ name, author, rating: rating || 5, time, note });
+            } else if (section === 'reading') {
+                const time = prompt('请输入开始时间：');
+                const progress = prompt('请输入当前进度（例如：50%）：');
+                data[section].push({ name, author, time, progress });
+            } else {
+                const recommender = prompt('推荐人（可选）：');
+                data[section].push({ name, author, recommender });
+            }
+
+            saveData();
+            render();
+        }
+
+        function deleteBook(section, index) {
+            if (!confirm('确定要删除这本书吗？')) return;
+            data[section].splice(index, 1);
+            saveData();
+            render();
+        }
+
+        function clearAllBooks() {
+            if (!confirm('⚠️ 确定要清空所有书籍数据吗？无法恢复！')) return;
+            if (confirm('再次确认：真的要清空吗？')) {
+                localStorage.removeItem('bookListData');
+                data = JSON.parse(JSON.stringify(defaultData));
+                saveData();
+                render();
+            }
+        }
+
+        render();
+    </script>
+</body>
+</html>

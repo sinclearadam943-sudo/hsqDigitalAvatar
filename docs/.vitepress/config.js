@@ -7,11 +7,11 @@ export default {
     nav: [
       { text: '首页', link: '/' },
       { text: '简历', link: '/resume' },
-      { text: '书单', link: '/books' },
-      { text: '音乐', link: '/music' },
-      { text: '电影', link: '/movies' },
-      { text: '遇见', link: '/people' },
-      { text: '自律打卡', link: '/self-management.html' },
+      { text: '书单', link: '/public/books.html' },
+      { text: '音乐', link: '/public/music.html' },
+      { text: '电影', link: '/public/movies.html' },
+      { text: '遇见', link: '/public/people.html' },
+      { text: '自律打卡', link: '/public/self-management.html' },
     ],
     search: {
       provider: 'local'
