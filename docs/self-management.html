@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自我管理打卡 - 洪思齐</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tdesign-icons@0.2.3/style/index.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2E6CF3',
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        danger: '#F53F3F',
+                        dark: '#1D2129',
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .task-item {
+            transition: all 0.3s ease;
+        }
+        .task-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        .task-item.checked {
+            opacity: 0.6;
+        }
+        .task-item.checked .task-name {
+            text-decoration: line-through;
+        }
+        .score-badge {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8 text-white">
+            <h1 class="text-4xl md:text-6xl font-bold mb-4">🎯 自我管理打卡</h1>
+            <p class="text-lg opacity-90">坚持自律，成就更好的自己</p>
+        </div>
+
+        <!-- Score Bank -->
+        <div class="card p-6 md:p-8 mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-dark mb-2">🏦 积分银行</h2>
+                    <p class="text-gray-500">每完成一次打卡获得相应积分</p>
+                </div>
+                <div class="text-right">
+                    <div class="score-badge inline-block bg-gradient-to-r from-yellow-400 to-orange-500 px-8 py-4 rounded-2xl shadow-lg">
+                        <div class="text-sm text-white opacity-90">当前积分</div>
+                        <div class="text-5xl font-bold text-white" id="total-score">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Daily Tasks -->
+            <div class="card p-6 md:p-8">
+                <h2 class="text-2xl font-bold text-dark mb-6 flex items-center">
+                    <span class="mr-3">📅</span> 每日任务
+                </h2>
+                <div id="daily-tasks" class="space-y-4">
+                    <!-- Tasks will be rendered here -->
+                </div>
+                <div class="mt-6 pt-4 border-t">
+                    <button onclick="addDailyTask()" class="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary/90 transition-colors">
+                        ➕ 添加每日任务
+                    </button>
+                </div>
+            </div>
+
+            <!-- Weekly Tasks -->
+            <div class="card p-6 md:p-8">
+                <h2 class="text-2xl font-bold text-dark mb-6 flex items-center">
+                    <span class="mr-3">📆</span> 每周任务
+                </h2>
+                <div id="weekly-tasks" class="space-y-4">
+                    <!-- Tasks will be rendered here -->
+                </div>
+                <div class="mt-6 pt-4 border-t">
+                    <button onclick="addWeeklyTask()" class="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary/90 transition-colors">
+                        ➕ 添加每周任务
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- History -->
+        <div class="card p-6 md:p-8 mt-8">
+            <h2 class="text-2xl font-bold text-dark mb-6 flex items-center">
+                <span class="mr-3">📊</span> 打卡记录
+            </h2>
+            <div id="history" class="space-y-2 max-h-64 overflow-y-auto">
+                <p class="text-gray-400 text-center py-4">暂无打卡记录</p>
+            </div>
+            <div class="mt-6 pt-4 border-t flex gap-4">
+                <button onclick="resetWeek()" class="flex-1 bg-warning text-white py-3 px-4 rounded-lg hover:bg-warning/90 transition-colors">
+                    🔄 重置本周
+                </button>
+                <button onclick="resetDaily()" class="flex-1 bg-warning text-white py-3 px-4 rounded-lg hover:bg-warning/90 transition-colors">
+                    🔄 重置今日
+                </button>
+                <button onclick="clearAllData()" class="flex-1 bg-danger text-white py-3 px-4 rounded-lg hover:bg-danger/90 transition-colors">
+                    🗑️ 清空数据
+                </button>
+            </div>
+        </div>
+        <div class="mt-4 text-center">
+            <p class="text-white/80 text-sm">
+                💡 数据备份请前往 <a href="/public/data-manager.html" class="underline hover:text-white">🔐 数据管理页面</a> 统一管理
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Default tasks
+        const defaultData = {
+            daily: [
+                { id: 1, name: '7点钟完成作业', points: 10, checked: false },
+                { id: 2, name: '9点钟上床睡觉', points: 10, checked: false },
+                { id: 3, name: '阅读30分钟', points: 5, checked: false }
+            ],
+            weekly: [
+                { id: 1, name: '吉他练习', points: 20, checked: false },
+                { id: 2, name: '跑步3次', points: 15, checked: false },
+                { id: 3, name: '整理房间', points: 10, checked: false }
+            ],
+            totalScore: 0,
+            history: []
+        };
+
+        // Load data from localStorage
+        let data = JSON.parse(localStorage.getItem('selfManagementData')) || defaultData;
+
+        function saveData() {
+            localStorage.setItem('selfManagementData', JSON.stringify(data));
+        }
+
+        function render() {
+            renderDailyTasks();
+            renderWeeklyTasks();
+            renderTotalScore();
+            renderHistory();
+        }
+
+        function renderDailyTasks() {
+            const container = document.getElementById('daily-tasks');
+            container.innerHTML = data.daily.map(task => `
+                <div class="task-item ${task.checked ? 'checked' : ''} bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" ${task.checked ? 'checked' : ''} 
+                                onchange="toggleDailyTask(${task.id})" 
+                                class="w-5 h-5 text-primary rounded">
+                            <span class="task-name font-medium text-dark">${task.name}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">
+                                +${task.points}分
+                            </span>
+                            <button onclick="deleteDailyTask(${task.id})" class="text-gray-400 hover:text-danger transition-colors">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderWeeklyTasks() {
+            const container = document.getElementById('weekly-tasks');
+            container.innerHTML = data.weekly.map(task => `
+                <div class="task-item ${task.checked ? 'checked' : ''} bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" ${task.checked ? 'checked' : ''} 
+                                onchange="toggleWeeklyTask(${task.id})" 
+                                class="w-5 h-5 text-primary rounded">
+                            <span class="task-name font-medium text-dark">${task.name}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">
+                                +${task.points}分
+                            </span>
+                            <button onclick="deleteWeeklyTask(${task.id})" class="text-gray-400 hover:text-danger transition-colors">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderTotalScore() {
+            document.getElementById('total-score').textContent = data.totalScore;
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('history');
+            if (data.history.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center py-4">暂无打卡记录</p>';
+                return;
+            }
+            
+            const recentHistory = data.history.slice(-10).reverse();
+            container.innerHTML = recentHistory.map(item => `
+                <div class="flex items-center justify-between py-2 px-4 bg-gray-50 rounded-lg">
+                    <span class="text-gray-600">${item.task}</span>
+                    <div class="flex items-center gap-3">
+                        <span class="text-success font-medium">+${item.points}分</span>
+                        <span class="text-xs text-gray-400">${new Date(item.time).toLocaleString('zh-CN')}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleDailyTask(id) {
+            const task = data.daily.find(t => t.id === id);
+            if (!task) return;
+            
+            if (!task.checked) {
+                // Check it
+                task.checked = true;
+                data.totalScore += task.points;
+                data.history.push({
+                    task: task.name,
+                    points: task.points,
+                    time: Date.now()
+                });
+            } else {
+                // Uncheck it
+                task.checked = false;
+                data.totalScore -= task.points;
+                // Remove last matching history entry
+                const index = data.history.findLastIndex(h => h.task === task.name);
+                if (index !== -1) {
+                    data.history.splice(index, 1);
+                }
+            }
+            saveData();
+            render();
+        }
+
+        function toggleWeeklyTask(id) {
+            const task = data.weekly.find(t => t.id === id);
+            if (!task) return;
+            
+            if (!task.checked) {
+                task.checked = true;
+                data.totalScore += task.points;
+                data.history.push({
+                    task: task.name,
+                    points: task.points,
+                    time: Date.now()
+                });
+            } else {
+                task.checked = false;
+                data.totalScore -= task.points;
+                const index = data.history.findLastIndex(h => h.task === task.name);
+                if (index !== -1) {
+                    data.history.splice(index, 1);
+                }
+            }
+            saveData();
+            render();
+        }
+
+        function deleteDailyTask(id) {
+            const task = data.daily.find(t => t.id === id);
+            if (task && task.checked) {
+                data.totalScore -= task.points;
+            }
+            data.daily = data.daily.filter(t => t.id !== id);
+            saveData();
+            render();
+        }
+
+        function deleteWeeklyTask(id) {
+            const task = data.weekly.find(t => t.id === id);
+            if (task && task.checked) {
+                data.totalScore -= task.points;
+            }
+            data.weekly = data.weekly.filter(t => t.id !== id);
+            saveData();
+            render();
+        }
+
+        function addDailyTask() {
+            const name = prompt('请输入每日任务名称：');
+            if (!name) return;
+            const points = parseInt(prompt('请输入完成后获得的积分：') || '5');
+            
+            const maxId = Math.max(0, ...data.daily.map(t => t.id));
+            data.daily.push({
+                id: maxId + 1,
+                name,
+                points: points || 5,
+                checked: false
+            });
+            saveData();
+            render();
+        }
+
+        function addWeeklyTask() {
+            const name = prompt('请输入每周任务名称：');
+            if (!name) return;
+            const points = parseInt(prompt('请输入完成后获得的积分：') || '10');
+            
+            const maxId = Math.max(0, ...data.weekly.map(t => t.id));
+            data.weekly.push({
+                id: maxId + 1,
+                name,
+                points: points || 10,
+                checked: false
+            });
+            saveData();
+            render();
+        }
+
+        function resetDaily() {
+            if (!confirm('确定要重置今日所有任务吗？这会取消所有打卡，但不会扣除积分。')) return;
+            data.daily.forEach(task => {
+                task.checked = false;
+            });
+            saveData();
+            render();
+        }
+
+        function resetWeek() {
+            if (!confirm('确定要重置本周所有任务吗？这会取消所有打卡，但不会扣除积分。')) return;
+            data.weekly.forEach(task => {
+                task.checked = false;
+            });
+            saveData();
+            render();
+        }
+
+        function clearAllData() {
+            if (!confirm('⚠️ 确定要清空本页数据吗？')) return;
+            if (confirm('再次确认：真的要清空打卡数据吗？')) {
+                localStorage.removeItem('selfManagementData');
+                data = JSON.parse(JSON.stringify(defaultData));
+                saveData();
+                render();
+            }
+        }
+
+        // Initial render
+        render();
+    </script>
+</body>
+</html>

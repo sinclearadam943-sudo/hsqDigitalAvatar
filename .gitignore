@@ -8,6 +8,8 @@ pnpm-lock.yaml
 docs/.vitepress/cache
 # Keep dist in git for GitHub Pages manual deployment
 # docs/.vitepress/dist
+# Ignore source markdown since we've built to docs/
+*.md
 
 # OS files
 .DS_Store
